@@ -1,0 +1,169 @@
+Assignment: Course Project 1
+========================================================
+
+This is an R Markdown document that contains the complete report for Assignment 1 of Reproducible Research subject (Cousera Data Science Specialization)
+
+The answers are:
+
+(1) Code for reading in the dataset and/or processing the data
+
+We start by calling some libraries needed for the entire assignment
+```{r}
+library(plyr)
+library(ggplot2)
+library(scales)
+library(timeDate)
+library(Rmisc)
+library(mice)
+##library(VIM)
+```
+
+We read the csv file and save it as the main data frame
+
+```{r}
+mydata<-read.csv("activity.csv")
+```
+
+stepsPerDay is a data frame that contains the sum of steps per each day in mydata
+
+```{r}
+stepsPerDay<-ddply(mydata, .(date), summarise, stepsDay = sum(steps, na.rm = TRUE))
+```
+
+This is the head of stepsPerDay:
+
+```{r}
+head(stepsPerDay)
+```
+
+For processing, it is needed to set a date format to the date column of strings:
+
+```{r}
+stepsPerDay$date<-as.Date(stepsPerDay$date)
+```
+
+(2) Now, the histogram plot is created with dates in x axis and steps count on y axis
+```{r}
+plot2<-ggplot(stepsPerDay, aes(x=date, y=stepsDay)) + geom_bar(stat="identity")
+plot2
+
+hist(stepsPerDay$steps)
+```
+
+
+(3) We calculate Mean and median number of steps taken each day, removing the NA values
+
+```{r}
+stepsMeanPerDay<-ddply(mydata, "date", summarise, stepsDay = mean(steps, na.rm = TRUE))
+stepsMedianPerDay<-ddply(mydata, "date", summarise, stepsDay = median(steps, na.rm = TRUE))
+head(stepsMeanPerDay)
+head(stepsMedianPerDay)
+mean(stepsPerDay$stepsDay,na.rm=TRUE)
+median(stepsPerDay$stepsDay,na.rm=TRUE)
+```
+
+(4) We create a time series plot of the average number of steps taken, giving date format to the date column of strings 
+
+```{r}
+stepsMeanPerDay$date<-as.Date(stepsMeanPerDay$date)
+plot3<-qplot( data=stepsMeanPerDay, x = date, y = stepsDay,stat="identity")
+plot3 + geom_line()
+```
+
+(5) The 5-minute interval that, on average, contains the maximum number of steps, is located this way:
+
+"mydata5" data frame is created. It contains the mean steps for each interval
+
+```{r}
+mydata5<-mydata
+mydata5$interval<-as.factor(mydata5$interval)
+maxStepsPerInterval<-ddply(mydata5, "interval", summarise, maxAvSteps = mean(steps, na.rm = TRUE))
+head(maxStepsPerInterval)
+```
+
+Now, we can know the interval with the maximum average steps:
+
+```{r}
+maxStepsPerInterval[max(maxStepsPerInterval$maxAvSteps),]
+```
+
+(6) Code and strategy for imputing missing data
+
+The mice package provides function md.pattern() to get a better understanding of the pattern of missing data
+
+
+```{r}
+md.pattern(mydata)
+```
+
+The mice() function takes care of the imputing process. Thispackage helps imputing missing values with plausible data values. These plausible values are drawn from a distribution specifically designed for each missing datapoint.
+
+```{r}
+tempData <- mice(mydata,m=5,maxit=50,meth='pmm',seed=500)
+completedData <- complete(tempData,1)
+head(completedData)
+```
+
+(7) Histogram of the total number of steps taken each day after missing values are imputed
+
+stepsPerDayMiss is a data frame that contains the sum of steps per each day in completedData, after missing values are imputed
+
+```{r}
+stepsPerDayMiss<-ddply(completedData, .(date), summarise, stepsDayMiss = sum(steps, na.rm = TRUE))
+
+```
+
+
+We have to give date format to the date column of strings
+```{r}
+stepsPerDayMiss$date<-as.Date(stepsPerDayMiss$date)
+```
+
+
+The histogram plot is created with dates in x axis and steps count on y axis
+
+```{r}
+plot7<-qplot( data=stepsPerDayMiss, x = date, y = stepsDayMiss, geom = "histogram", stat="identity")
+```
+
+Showing the histogram on screen, formating x axis to months
+```{r}
+plot7 + scale_x_date(breaks = date_breaks("months"),labels = date_format("%b"))
+```
+
+The Final Histogram is:
+```{r}
+hist(stepsPerDayMiss$stepsDayMiss)
+```
+
+(8) Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+
+We start by discerning weekdays and weekends, according to the dates given. After that, we can add this column (weekday=TRUE and weekend=FALSE) to a new data frame.
+
+This new data frame is processed and subsetted according to weekdays and weekends.
+
+Finally, "dataFrame7" is created. The latter contains interval and steps- averages for weekends and weekdays, based on the previous processing code of question 5.
+
+With dataFrame7, we proceed to create panel plots where we can see the differences in averages for weekends and weekdays
+
+```{r}
+
+weekdayTRUEweekendFALSE<-isWeekday(mydata5$date)
+mydata8<-cbind(mydata5,weekdayTRUEweekendFALSE)
+
+subsetWeekdays<-mydata8[weekdayTRUEweekendFALSE=="TRUE",]
+subsetWeekends<-mydata8[weekdayTRUEweekendFALSE=="FALSE",]
+
+AvStepsPerIntervalWeekdays<-ddply(subsetWeekdays, "interval", summarise, AvStepsWeekdays = mean(steps, na.rm = TRUE))
+AvStepsPerIntervalWeekends<-ddply(subsetWeekends, "interval", summarise, AvStepsWeekends = mean(steps, na.rm = TRUE))
+
+dataFrame7<-cbind(AvStepsPerIntervalWeekdays,AvStepsPerIntervalWeekends$AvStepsWeekends)
+
+plot8Weekdays<-ggplot(dataFrame7, aes(x=interval, y=AvStepsWeekdays)) + geom_point()+scale_x_discrete(breaks=c(0, 500, 1000, 1500, 2000,2355))
+
+plot8Weekends<-ggplot(dataFrame7, aes(x=interval, y=AvStepsPerIntervalWeekends$AvStepsWeekends)) + geom_point()+scale_x_discrete(breaks=c(0, 500, 1000, 1500, 2000,2355))
+
+multiplot(plot8Weekdays,plot8Weekends,cols=2)
+```
+
+
