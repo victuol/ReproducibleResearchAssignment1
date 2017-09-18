@@ -1,0 +1,35 @@
+DOCUMENTATION FOR DEVELOPING DATA PRODUCTS PEER ASSESMENT - DATA SCIENCE SPECIALIZATION AT COURSERA
+
+This work is based on the "Seatbelts" Data Set. Here is a brief description of it:
+Road Casualties in Great Britain 1969–84
+
+Description
+
+UKDriverDeaths is a time series giving the monthly totals of car drivers in Great Britain killed or seriously injured Jan 1969 to Dec 1984. 
+Compulsory wearing of seat belts was introduced on 31 Jan 1983.
+
+str(Seatbelts)
+ Time-Series [1:192, 1:8] from 1969 to 1985: 107 97 102 87 119 106 110 106 107 134 ...
+ - attr(*, "dimnames")=List of 2
+
+Seatbelts is a multiple time series, with columns. Its variables are:
+
+DriversKilled: car drivers killed.
+
+drivers: same as UKDriverDeaths.
+
+front: front-seat passengers killed or seriously injured.
+
+rear: rear-seat passengers killed or seriously injured.
+
+kms: distance driven.
+
+PetrolPrice: petrol price.
+
+VanKilled: number of van (‘light goods vehicle’) drivers.
+
+law: 0/1: was the law in effect that month?
+
+The interactive app shows a histogram for the "Driverskilled" frequency. User can vary the bins that the histogram is showing,
+by displacing a widget that is being shown on screen. The histogram will automatically reprogram itself based on the input
+of the user.
