@@ -1,0 +1,12 @@
+name: myAppSeatbelts
+title: myAppSeatbelts
+username:
+account: victuol
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 216193
+bundleId: 986374
+url: https://victuol.shinyapps.io/myAppSeatbelts/
+when: 1505749480.16427
+asMultiple: FALSE
+asStatic: FALSE
